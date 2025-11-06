@@ -13,7 +13,7 @@ export interface SignUpReq extends SignInReq {
 export type SignInRes = UserToken & { user: UserInfo };
 
 export enum UserApi {
-	SignIn = "/auth/signin",
+	SignIn = "/auth-signin",
 	SignUp = "/auth/signup",
 	Logout = "/auth/logout",
 	Refresh = "/auth/refresh",
@@ -31,3 +31,4 @@ export default {
 	findById,
 	logout,
 };
+
