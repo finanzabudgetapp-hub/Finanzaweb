@@ -18,6 +18,7 @@ export const webRoutes: RouteObject[] = [
 				<Outlet />
 			</Suspense>
 		),
-		children: [...webCustom],
+		children: <HomePage />,
 	},
 ];
+
