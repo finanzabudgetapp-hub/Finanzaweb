@@ -29,26 +29,24 @@ export default function ContainerView({ variant }: Props) {
 
   // ✅ Safe transition compatible with Framer Motion v12+
   const safeTransition = useMemo(() => {
-    const ease = variants.transition?.ease;
+  const ease = variants.transition?.ease;
 
-    let validEase: number[] | ((t: number) => number) | undefined;
+  let validEase: "easeInOut" | "linear" | "easeIn" | "easeOut" | undefined;
 
-    // Accept only valid cubic-bezier arrays
-    if (Array.isArray(ease) && ease.length === 4 && ease.every((v) => typeof v === "number")) {
-      validEase = ease as [number, number, number, number];
-    } else if (typeof ease === "function") {
-      validEase = ease;
-    } else {
-      // Default to standard easeInOut curve
-      validEase = [0.42, 0, 0.58, 1];
-    }
+  if (typeof ease === "string") {
+    validEase = ease as any;
+  } else if (typeof ease === "function") {
+    validEase = "easeInOut";
+  } else {
+    validEase = "easeInOut";
+  }
 
-    return {
-      duration: variants.transition?.duration ?? 1.2,
-      ease: validEase,
-    };
-  }, [variants.transition]);
-
+  return {
+    duration: variants.transition?.duration ?? 1.2,
+    ease: validEase,
+  };
+}, [variants.transition]);
+  
   return (
     <div
       key={variant}
@@ -78,3 +76,4 @@ export default function ContainerView({ variant }: Props) {
     </div>
   );
 }
+
