@@ -1,5 +1,5 @@
 import type { Handler } from "@netlify/functions";
-import { DB_USER } from "../../_mock/db"; // adjust if your path differs
+import { DB_USER } from "../../_mock/assets_backup"; 
 
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== "POST") {
