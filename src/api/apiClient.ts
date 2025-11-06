@@ -14,7 +14,7 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = userStore.getState().userInfo?.token;
+    const token = userStore.getState().userInfo?.usertoken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -62,3 +62,4 @@ class APIClient {
 }
 
 export default new APIClient();
+
