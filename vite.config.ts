@@ -12,6 +12,8 @@ export default defineConfig(({ mode }) => {
 
 	return {
 		base,
+		publicDir: "public", // ✅ ensure public assets are copied correctly
+
 		plugins: [
 			react(),
 			vanillaExtractPlugin({
@@ -22,7 +24,7 @@ export default defineConfig(({ mode }) => {
 
 			isProduction &&
 				visualizer({
-					open: true,
+					open: false, // ✅ avoid auto-open in Netlify
 					gzipSize: true,
 					brotliSize: true,
 					template: "treemap",
@@ -49,8 +51,13 @@ export default defineConfig(({ mode }) => {
 			sourcemap: !isProduction,
 			cssCodeSplit: true,
 			chunkSizeWarningLimit: 1500,
+			outDir: "dist",
+			assetsDir: "assets", // ✅ ensures consistent /assets/ path
 			rollupOptions: {
 				output: {
+					entryFileNames: "assets/[name]-[hash].js",
+					chunkFileNames: "assets/[name]-[hash].js",
+					assetFileNames: "assets/[name]-[hash][extname]",
 					manualChunks: {
 						"vendor-core": ["react", "react-dom", "react-router"],
 						"vendor-ui": ["antd", "@ant-design/cssinjs", "styled-components"],
