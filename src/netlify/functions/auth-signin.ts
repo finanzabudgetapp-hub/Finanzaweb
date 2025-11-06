@@ -9,14 +9,14 @@ export const handler: Handler = async (event) => {
     const { username, password } = JSON.parse(event.body || "{}");
 
     // Simple demo authentication logic (replace with real backend or DB later)
-    if (username === "demo" && password === "password123") {
+    if (username === "admin" && password === "demo1234") {
       return {
         statusCode: 200,
         body: JSON.stringify({
           token: "mock-token-123",
           user: {
             id: "1",
-            username: "demo",
+            username: "admin",
             email: "demo@example.com",
           },
         }),
