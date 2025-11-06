@@ -1,5 +1,4 @@
-// src/components/FAQ.jsx
-import React, { useState } from "react";
+import { useState } from "react";
 
 const faqs = [
   {
@@ -17,7 +16,8 @@ const faqs = [
 ];
 
 export default function FAQ() {
-  const [open, setOpen] = useState(null);
+  // ✅ Explicitly define state type: number | null
+  const [open, setOpen] = useState<number | null>(null);
 
   return (
     <section className="py-24 bg-white text-center">
@@ -30,8 +30,9 @@ export default function FAQ() {
               className="w-full px-6 py-4 text-lg font-medium flex justify-between items-center"
             >
               {f.q}
-              <span>{open === i ? "−" : "+"}</span>
+              <span className="text-xl font-bold">{open === i ? "−" : "+"}</span>
             </button>
+
             {open === i && (
               <p className="px-6 pb-4 text-gray-600">{f.a}</p>
             )}
