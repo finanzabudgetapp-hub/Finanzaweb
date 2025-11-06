@@ -4,19 +4,23 @@ import "./locales/i18n";
 import ReactDOM from "react-dom/client";
 import { Outlet, RouterProvider, createBrowserRouter } from "react-router";
 import App from "./App";
-import { worker } from "./_mock";
 import menuService from "./api/services/menuService";
 import { registerLocalIcons } from "./components/icon";
 import { GLOBAL_CONFIG } from "./global-config";
 import ErrorBoundary from "./routes/components/error-boundary";
 import { routesSection } from "./routes/sections";
-import { urlJoin } from "./utils";
 
 await registerLocalIcons();
-await worker.start({
-	onUnhandledRequest: "bypass",
-	serviceWorker: { url: urlJoin(GLOBAL_CONFIG.publicPath, "mockServiceWorker.js") },
-});
+if (import.meta.env.DEV) {
+  const { worker } = await import("./_mock");
+  const { urlJoin } = await import("./utils");
+
+  await worker.start({
+    onUnhandledRequest: "bypass",
+    serviceWorker: { url: urlJoin(GLOBAL_CONFIG.publicPath, "mockServiceWorker.js") },
+  });
+}
+
 if (GLOBAL_CONFIG.routerMode === "backend") {
 	await menuService.getMenuList();
 }
@@ -40,3 +44,4 @@ const router = createBrowserRouter(
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(<RouterProvider router={router} />);
+
