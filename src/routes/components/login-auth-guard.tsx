@@ -11,7 +11,7 @@ export default function LoginAuthGuard({ children }: Props) {
 
 	const check = useCallback(() => {
 		if (!accessToken) {
-			router.replace("/");
+			router.replace("/auth/login");
 		}
 	}, [router, accessToken]);
 
@@ -21,4 +21,5 @@ export default function LoginAuthGuard({ children }: Props) {
 
 	return <>{children}</>;
 }
+
 
