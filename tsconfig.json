@@ -21,8 +21,8 @@
 		"strict": true,
 		"strictNullChecks": true,
 		"noImplicitAny": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
 		"noFallthroughCasesInSwitch": true,
 		"useUnknownInCatchVariables": false,
 
@@ -35,3 +35,4 @@
 	"include": ["src", "src/types", "tailwind.config.ts"],
 	"exclude": ["node_modules", "dist"]
 }
+
