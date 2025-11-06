@@ -1,8 +1,7 @@
 import type { Handler } from "@netlify/functions";
-import axios from "axios";
+import { DB_USER } from "../../_mock/db"; // adjust if your path differs
 
 export const handler: Handler = async (event) => {
-  // Only allow POST
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -11,39 +10,45 @@ export const handler: Handler = async (event) => {
   }
 
   try {
-    // Parse credentials from frontend
-    const body = JSON.parse(event.body || "{}");
-    const { username, password } = body;
+    const { username, password } = JSON.parse(event.body || "{}");
 
-    // Forward the request to your EMO backend endpoint
-    const response = await axios.post(
-      "https://finanzatechnologies.com/api/auth-signin", // 👈 actual backend endpoint
-      { username, password },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        timeout: 10000,
-      }
+    // Find matching user from the demo database
+    const user = DB_USER.find(
+      (u) => u.username === username && u.password === password
     );
 
-    // Return backend response directly to the frontend
+    if (!user) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ message: "Invalid credentials" }),
+      };
+    }
+
+    // Return a mock token + user info
     return {
-      statusCode: response.status,
-      body: JSON.stringify(response.data),
+      statusCode: 200,
+      body: JSON.stringify({
+        status: 200,
+        message: "Login successful",
+        data: {
+          token: "demo-token-123",
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            avatar: user.avatar,
+          },
+        },
+      }),
     };
-  } catch (error: any) {
-    console.error("Auth-signin error:", error);
-
-    const status = error.response?.status || 500;
-    const message =
-      error.response?.data?.message ||
-      error.message ||
-      "Failed to connect to backend";
-
+  } catch (error) {
+    console.error("Auth error:", error);
     return {
-      statusCode: status,
-      body: JSON.stringify({ message }),
+      statusCode: 500,
+      body: JSON.stringify({
+        message: "Server error",
+        error: (error as Error).message,
+      }),
     };
   }
 };
