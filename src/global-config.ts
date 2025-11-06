@@ -28,8 +28,9 @@ export type GlobalConfig = {
 export const GLOBAL_CONFIG: GlobalConfig = {
 	appName: "Finanza",
 	appVersion: packageJson.version,
-	defaultRoute: import.meta.env.VITE_APP_DEFAULT_ROUTE || "/workbench",
+	defaultRoute: import.meta.env.VITE_APP_DEFAULT_ROUTE || "/",
 	publicPath: import.meta.env.VITE_APP_PUBLIC_PATH || "/",
-	apiBaseUrl: import.meta.env.VITE_APP_API_BASE_URL || "/api",
+	apiBaseUrl: import.meta.env.VITE_APP_API_BASE_URL || "/.netlify/functions",
 	routerMode: import.meta.env.VITE_APP_ROUTER_MODE || "frontend",
 };
+
