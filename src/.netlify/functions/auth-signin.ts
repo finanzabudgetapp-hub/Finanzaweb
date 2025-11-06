@@ -1,30 +1,49 @@
 import type { Handler } from "@netlify/functions";
+import axios from "axios";
 
 export const handler: Handler = async (event) => {
+  // Only allow POST
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: JSON.stringify({ message: "Method not allowed" }) };
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ message: "Method not allowed" }),
+    };
   }
 
   try {
-    const { username, password } = JSON.parse(event.body || "{}");
+    // Parse credentials from frontend
+    const body = JSON.parse(event.body || "{}");
+    const { username, password } = body;
 
-    // Simple demo authentication logic (replace with real backend or DB later)
-    if (username === "admin" && password === "demo1234") {
-      return {
-        statusCode: 200,
-        body: JSON.stringify({
-          token: "mock-token-123",
-          user: {
-            id: "1",
-            username: "admin",
-            email: "demo@example.com",
-          },
-        }),
-      };
-    }
+    // Forward the request to your EMO backend endpoint
+    const response = await axios.post(
+      "https://finanzatechnologies.com/api/auth-signin", // 👈 actual backend endpoint
+      { username, password },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 10000,
+      }
+    );
 
-    return { statusCode: 401, body: JSON.stringify({ message: "Invalid credentials" }) };
-  } catch (error) {
-    return { statusCode: 500, body: JSON.stringify({ message: "Server error", error }) };
+    // Return backend response directly to the frontend
+    return {
+      statusCode: response.status,
+      body: JSON.stringify(response.data),
+    };
+  } catch (error: any) {
+    console.error("Auth-signin error:", error);
+
+    const status = error.response?.status || 500;
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to connect to backend";
+
+    return {
+      statusCode: status,
+      body: JSON.stringify({ message }),
+    };
   }
 };
