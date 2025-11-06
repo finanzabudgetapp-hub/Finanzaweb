@@ -53,6 +53,9 @@ importers:
       '@iconify/utils':
         specifier: ^2.3.0
         version: 2.3.0
+      '@netlify/functions':
+        specifier: ^5.1.0
+        version: 5.1.0
       '@tailwindcss/vite':
         specifier: ^4.1.3
         version: 4.1.4(vite@6.3.3(@types/node@20.5.1)(jiti@2.4.2)(lightningcss@1.29.2)(tsx@4.19.4))
@@ -836,6 +839,14 @@ packages:
   '@mswjs/interceptors@0.37.6':
     resolution: {integrity: sha512-wK+5pLK5XFmgtH3aQ2YVvA3HohS3xqV/OxuVOdNx9Wpnz7VE/fnC+e1A7ln6LFYeck7gOJ/dsZV6OLplOtAJ2w==}
     engines: {node: '>=18'}
+
+  '@netlify/functions@5.1.0':
+    resolution: {integrity: sha512-LZtiQtf/QzPHIeNDZuIBxx04kmU7lCipWqZ26ejX7mYSB3yj2wvpZfF49kD8B8FoKTydSvgFmBpIcCO5FvpEXA==}
+    engines: {node: '>=18.0.0'}
+
+  '@netlify/types@2.2.0':
+    resolution: {integrity: sha512-XOWlZ2wPpdRKkAOcQbjIf/Qz7L4RjcSVINVNQ9p3F6U8V6KSEOsB3fPrc6Ly8EOeJioHUepRPuzHzJE/7V5EsA==}
+    engines: {node: ^18.14.0 || >=20}
 
   '@open-draft/deferred-promise@2.2.0':
     resolution: {integrity: sha512-CecwLWx3rhxVQF6V4bAgPS5t+So2sTbPgAzafKkVizyi7tlwpcFpdFqq+wqF2OwNBmqFuu6tOyouTuxgpMfzmA==}
@@ -4992,6 +5003,12 @@ snapshots:
       is-node-process: 1.2.0
       outvariant: 1.4.3
       strict-event-emitter: 0.5.1
+
+  '@netlify/functions@5.1.0':
+    dependencies:
+      '@netlify/types': 2.2.0
+
+  '@netlify/types@2.2.0': {}
 
   '@open-draft/deferred-promise@2.2.0': {}
 
