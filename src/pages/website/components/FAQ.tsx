@@ -52,7 +52,7 @@ export default function FAQ() {
 	return (
 		<section
 			id="learn-more"
-			className="py-15 md:py-24 px-auto md:px-30 flex flex-wrap-reverse bg-white text-center gap-20"
+			className="py-15 md:py-24 px-auto md:px-30 flex flex-wrap-reverse md:no-wrap bg-white text-center gap-20"
 		>
 			<div className="container mx-auto">
 				<h2 className="text-4xl font-bold mb-12">Frequently Asked Questions</h2>

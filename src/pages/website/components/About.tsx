@@ -5,8 +5,8 @@ export default function About() {
 	return (
 		<section
 			id="about"
-			className="bg-gradient-to-b from-[#fff] to-[#fff] text-black flex-wrap-reverse
-	 py-28 flex mt-10 gap-4"
+			className="bg-gradient-to-b from-[#fff] to-[#fff] text-black flex-wrap-reverse md:no-wrap
+	 py-28 flex mt-10 gap-4 md:px-28"
 		>
 			<div className="container px-auto flex justify-center mt-10 gap-4">
 				<motion.img
