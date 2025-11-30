@@ -1,25 +1,30 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/supabaseClient';
+import React, { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/supabaseClient";
 
-// --- UI Components ---
-const Title = ({ children, className = '' }) => (
+/* --------------------------------------------
+   UI COMPONENTS
+-------------------------------------------- */
+const Title = ({ children, className = "" }) => (
   <h1 className={`text-3xl font-bold text-gray-800 ${className}`}>{children}</h1>
 );
-const Text = ({ children, className = '' }) => (
-  <p className={`text-sm text-gray-600 ${className}`}>{children}</p>
+
+const Text = ({ children, className = "" }) => (
+  <p className={`text-sm text-gray-700 ${className}`}>{children}</p>
 );
-const Input = ({ className = '', ...props }) => (
+
+const Input = ({ className = "", ...props }) => (
   <input
-    className={`w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ${className}`}
+    className={`w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition ${className}`}
     {...props}
   />
 );
-const Button = ({ children, className = '', disabled, ...props }) => (
+
+const Button = ({ children, className = "", disabled, ...props }) => (
   <button
-    className={`px-6 py-2 rounded-lg font-semibold transition duration-200 shadow-md ${
+    className={`px-5 py-2 rounded-lg font-semibold shadow-sm transition ${
       disabled
-        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-        : 'bg-blue-600 hover:bg-blue-700 text-white active:scale-[0.98]'
+        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+        : "bg-blue-600 hover:bg-blue-700 text-white active:scale-95"
     } ${className}`}
     disabled={disabled}
     {...props}
@@ -27,22 +32,27 @@ const Button = ({ children, className = '', disabled, ...props }) => (
     {children}
   </button>
 );
-const Card = ({ children, className = '' }) => (
-  <div className={`bg-white shadow-xl rounded-xl overflow-hidden ${className}`}>{children}</div>
-);
-const CardContent = ({ children, className = '' }) => <div className={`p-6 ${className}`}>{children}</div>;
 
-// Modal for user details
+const Card = ({ children, className = "" }) => (
+  <div className={`bg-white shadow-lg rounded-xl ${className}`}>{children}</div>
+);
+
+const CardContent = ({ children, className = "" }) => (
+  <div className={`p-6 ${className}`}>{children}</div>
+);
+
+/* -------------- MODAL -------------- */
 const Modal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 relative">
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 relative">
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 font-bold text-lg"
+          className="absolute top-3 right-3 font-bold text-lg text-gray-600 hover:text-gray-900"
         >
-          &times;
+          ✕
         </button>
         {children}
       </div>
@@ -50,28 +60,51 @@ const Modal = ({ isOpen, onClose, children }) => {
   );
 };
 
-// Types
+/* -------------- TYPES -------------- */
 type User = {
   id: string;
-  display_name: string;
+  display_name: string | null;
   email: string;
-  updated_at: string;
- 
+  created_at?: string | null;
+  updated_at?: string | null;
+  role?: string | null;
 };
 
-// --- MAIN COMPONENT ---
+/* Utility to handle broken or null dates */
+const formatDate = (dateString?: string | null) => {
+  if (!dateString) return "N/A";
+
+  const parsed = Date.parse(dateString);
+  if (isNaN(parsed)) return "N/A";
+
+  return new Date(parsed).toLocaleString();
+};
+
+/* --------------------------------------------
+   MAIN COMPONENT
+-------------------------------------------- */
 const AdminUsersPage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  // Fetch users
+  /* Fetch users */
   const loadUsers = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('profiles').select('*').order('updated_at', { ascending: false });
-    if (error) console.error('Failed to load users:', error);
-    else setUsers(data || []);
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .order("updated_at", { ascending: false });
+
+    if (error) {
+      console.error("Error loading users:", error);
+      setLoading(false);
+      return;
+    }
+
+    setUsers(data || []);
     setLoading(false);
   }, []);
 
@@ -79,28 +112,34 @@ const AdminUsersPage = () => {
     loadUsers();
   }, [loadUsers]);
 
-  // Filtered users
-  const filteredUsers = users.filter(
-    (u) =>
-      u.display_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  /* Filtered Search */
+  const filteredUsers = users.filter((u) => {
+    const name = u.display_name?.toLowerCase() || "";
+    const email = u.email?.toLowerCase() || "";
+    const q = searchQuery.toLowerCase();
 
+    return name.includes(q) || email.includes(q);
+  });
+
+  /* --------------------------------------------
+     RENDER
+  -------------------------------------------- */
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-8 lg:p-12 font-inter">
+    <div className="min-h-screen bg-gray-50 p-6 font-inter">
       <div className="max-w-6xl mx-auto flex flex-col gap-8">
-        <Title className="border-b pb-4">User Management</Title>
+        <Title>User Management</Title>
 
-        {/* Search */}
-        <div className="flex gap-4 items-center">
+        {/* Search Row */}
+        <div className="flex flex-wrap gap-4 items-center">
           <Input
             placeholder="Search by name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full max-w-md"
+            className="max-w-md"
           />
+
           <Button onClick={loadUsers} disabled={loading}>
-            {loading ? 'Loading...' : 'Refresh'}
+            {loading ? "Loading..." : "Refresh"}
           </Button>
         </div>
 
@@ -108,9 +147,9 @@ const AdminUsersPage = () => {
         <Card>
           <CardContent>
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[700px]">
+              <table className="w-full min-w-[700px] border-collapse text-left">
                 <thead>
-                  <tr className="bg-gray-100 border-b border-gray-200 text-sm font-medium text-gray-600 uppercase">
+                  <tr className="bg-gray-100 text-gray-600 text-sm uppercase border-b">
                     <th className="py-3 px-4">Name</th>
                     <th className="py-3 px-4">Email</th>
                     <th className="py-3 px-4">Role</th>
@@ -118,10 +157,14 @@ const AdminUsersPage = () => {
                     <th className="py-3 px-4">Actions</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {filteredUsers.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-6 text-center text-gray-500 italic">
+                      <td
+                        className="py-6 text-center text-gray-500 italic"
+                        colSpan={5}
+                      >
                         No users found.
                       </td>
                     </tr>
@@ -129,19 +172,29 @@ const AdminUsersPage = () => {
                     filteredUsers.map((user) => (
                       <tr
                         key={user.id}
-                        className="border-b border-gray-100 hover:bg-blue-50 transition duration-100 text-sm text-gray-700"
+                        className="border-b hover:bg-blue-50 text-sm"
                       >
-                        <td className="py-3 px-4 font-medium">{user.display_name}</td>
-                        <td className="py-3 px-4 font-mono text-xs">{user.email}</td>
-                        <td className="py-3 px-4">{user.role || 'User'}</td>
-                        <td className="py-3 px-4 whitespace-nowrap">
-                          {user.created_at
-  ? new Date(Date.parse(user.created_at)).toLocaleString()
-  : 'N/A'}
-
+                        <td className="py-3 px-4 font-medium">
+                          {user.display_name || "No name"}
                         </td>
+
+                        <td className="py-3 px-4 font-mono text-xs">
+                          {user.email}
+                        </td>
+
                         <td className="py-3 px-4">
-                          <Button onClick={() => setSelectedUser(user)} className="px-3 py-1 text-sm">
+                          {user.role || "User"}
+                        </td>
+
+                        <td className="py-3 px-4">
+                          {formatDate(user.created_at || user.updated_at)}
+                        </td>
+
+                        <td className="py-3 px-4">
+                          <Button
+                            className="px-3 py-1 text-sm"
+                            onClick={() => setSelectedUser(user)}
+                          >
                             View Details
                           </Button>
                         </td>
@@ -154,22 +207,30 @@ const AdminUsersPage = () => {
           </CardContent>
         </Card>
 
-        {/* User Detail Modal */}
-        <Modal isOpen={!!selectedUser} onClose={() => setSelectedUser(null)}>
+        {/* Modal */}
+        <Modal
+          isOpen={!!selectedUser}
+          onClose={() => setSelectedUser(null)}
+        >
           {selectedUser && (
             <div className="flex flex-col gap-4">
-              <h2 className="text-xl font-semibold text-gray-700">User Details</h2>
+              <h2 className="text-xl font-semibold">User Details</h2>
+
               <Text>
-                <strong>Name:</strong> {selectedUser.display_name}
+                <strong>Name:</strong> {selectedUser.display_name || "N/A"}
               </Text>
+
               <Text>
                 <strong>Email:</strong> {selectedUser.email}
               </Text>
+
               <Text>
-                <strong>Role:</strong> 'User'
+                <strong>Role:</strong> {selectedUser.role || "User"}
               </Text>
+
               <Text>
-                <strong>Created At:</strong> {new Date(selectedUser.created_at).toLocaleString()}
+                <strong>Created At:</strong>{" "}
+                {formatDate(selectedUser.created_at || selectedUser.updated_at)}
               </Text>
             </div>
           )}

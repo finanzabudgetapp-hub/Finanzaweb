@@ -38,6 +38,23 @@ const fallbackAvatars = [
   { avatar: avatar5, name: "User5" },
 ];
 
+/* ------------------------------------------
+  SAFE DATE PARSER – FIXES Invalid Date
+-------------------------------------------*/
+function safeDate(value: any): Date {
+  if (!value) return new Date("1970-01-01");
+
+  const d = new Date(value);
+
+  if (!isNaN(d.getTime())) return d;
+
+  // Try forcing ISO format
+  return new Date(String(value).replace(" ", "T"));
+}
+
+/* ------------------------------------------
+  MAIN COMPONENT
+-------------------------------------------*/
 export default function Workbench() {
   const [loading, setLoading] = useState(true);
 
@@ -61,11 +78,13 @@ export default function Workbench() {
     loadDashboard();
   }, []);
 
+  /* ------------------------------------------
+      LOAD DASHBOARD DATA
+  -------------------------------------------*/
   const loadDashboard = async () => {
     setLoading(true);
 
     try {
-      // Run everything in parallel
       const [earningsRes, txMonthlyRes, usersRes, txRes] = await Promise.all([
         supabase.from("transactions").select("amount").eq("status", "success"),
         supabase.from("transactions").select("amount, created_at"),
@@ -73,28 +92,25 @@ export default function Workbench() {
         supabase.from("transactions").select("*").order("created_at", { ascending: false }).limit(10),
       ]);
 
-      /* ------------------ CLEANED & OPTIMIZED ------------------ */
       const earningsData = earningsRes.data || [];
       const txMonthly = txMonthlyRes.data || [];
       const users = usersRes.data || [];
       const tx = txRes.data || [];
 
       /* 1️⃣ Total earnings */
-      const totalEarnings = earningsData.reduce(
-        (sum, t) => sum + (t.amount || 0),
-        0
-      );
+      const totalEarnings = earningsData.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-      /* 2️⃣ Analytics */
+      /* 2️⃣ Fake analytics */
       const pageViews = 125000;
       const appDownloads = 2067;
 
       /* 3️⃣ Monthly revenue */
       const monthlySeries = Array(12).fill(0);
-      for (const t of txMonthly) {
-        const m = new Date(t.created_at).getMonth();
+
+      txMonthly.forEach((t) => {
+        const m = safeDate(t.created_at).getMonth(); // FIXED DATE
         monthlySeries[m] += t.amount || 0;
-      }
+      });
 
       /* 4️⃣ Recent users */
       setProjectUsers(users.length ? users : fallbackAvatars);
@@ -106,12 +122,12 @@ export default function Workbench() {
           name: t.description || "Transaction",
           id: "#" + t.id,
           amount: t.amount,
-          time: new Date(t.created_at).toLocaleTimeString(),
+          time: safeDate(t.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), // FIXED DATE
           status: t.amount >= 0 ? "up" : "down",
         }))
       );
 
-      /* 6️⃣ Quick stats */
+      /* 6️⃣ Quick Stats */
       setQuickStats([
         {
           icon: "solar:wallet-outline",
@@ -143,13 +159,12 @@ export default function Workbench() {
         },
       ]);
 
-      /* 7️⃣ Revenue chart */
+      /* 7️⃣ Revenue chart config */
       setMonthlyRevenue({
         series: [{ name: "Revenue", data: monthlySeries }],
         categories: monthlyRevenue.categories,
         percent: 5.44,
       });
-
     } catch (error) {
       console.error("Dashboard Error:", error);
     }
@@ -157,6 +172,9 @@ export default function Workbench() {
     setLoading(false);
   };
 
+  /* ------------------------------------------
+      CHART CONFIG
+  -------------------------------------------*/
   const chartOptions = useMemo(
     () => ({
       chart: { type: "area", toolbar: { show: false } },
@@ -166,14 +184,15 @@ export default function Workbench() {
       yaxis: {
         labels: { formatter: (v) => "₦" + v.toLocaleString() },
       },
-      tooltip: {
-        y: { formatter: (v) => "₦" + v.toLocaleString() },
-      },
+      tooltip: { y: { formatter: (v) => "₦" + v.toLocaleString() } },
       colors: ["#3b82f6"],
     }),
     [monthlyRevenue.categories]
   );
 
+  /* ------------------------------------------
+      RENDER UI
+  -------------------------------------------*/
   return (
     <div className="flex flex-col gap-4 w-full">
       <BannerCard />
@@ -192,9 +211,7 @@ export default function Workbench() {
                 </Text>
               </div>
 
-              <Title as="h3" className="text-2xl font-bold">
-                {stat.value}
-              </Title>
+              <Title as="h3" className="text-2xl font-bold">{stat.value}</Title>
 
               <div className="w-full h-10 mt-2">
                 <Chart
@@ -220,9 +237,7 @@ export default function Workbench() {
         <Card className="lg:col-span-2">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-2">
-              <Text variant="body2" className="font-semibold">
-                App Monthly Transaction
-              </Text>
+              <Text variant="body2" className="font-semibold">App Monthly Transaction</Text>
               <span className="flex items-center gap-1 text-green-500 font-bold text-sm">
                 <Icon icon="mdi:arrow-up" size={16} />
                 {monthlyRevenue.percent}%
