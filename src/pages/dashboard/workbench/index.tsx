@@ -57,19 +57,41 @@ function safeDate(value: any): Date {
 -------------------------------------------*/
 export default function Workbench() {
   const [loading, setLoading] = useState(true);
+// TYPES
+type QuickStat = {
+  icon: string;
+  label: string;
+  value: string;
+  color: string;
+  chart: number[];
+};
 
-
-
-      const { count: activeCount } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true });
-
-    const [quickStats, setQuickStats] = useState<QuickStat[]>([
+// STATE (NO AWAIT HERE)
+const [quickStats, setQuickStats] = useState<QuickStat[]>([
   { icon: "solar:wallet-outline", label: "All Earnings", value: "₦0", color: "#3b82f6", chart: [] },
   { icon: "solar:graph-outline", label: "Page Views", value: "0", color: "#f59e42", chart: [] },
-  { icon: "solar:users-group-rounded-outline", label: "Active Users", value: `${activeCount ?? 0}`, color: "#10b981", chart: [] },
+  { icon: "solar:users-group-rounded-outline", label: "Active Users", value: "0", color: "#10b981", chart: [] },
   { icon: "solar:download-outline", label: "Downloads", value: "0", color: "#ef4444", chart: [] },
 ]);
+
+// FETCH STATS
+useEffect(() => {
+  const loadStats = async () => {
+    const { count: activeCount } = await supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true });
+
+    setQuickStats((prev) =>
+      prev.map((stat) =>
+        stat.label === "Active Users"
+          ? { ...stat, value: `${activeCount ?? 0}` }
+          : stat
+      )
+    );
+  };
+
+  loadStats();
+}, []);
 
 
 
@@ -326,6 +348,7 @@ const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenue>({
     </div>
   );
 }
+
 
 
 
