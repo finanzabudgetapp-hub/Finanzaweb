@@ -1,28 +1,32 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/supabaseClient';
+import { ReactNode } from 'react';
 
-// ---- UI Components ----
-const Title = ({ children, className = '' }) => (
-  <h1 className={`text-3xl font-bold text-gray-800 ${className}`}>{children}</h1>
-);
-const Text = ({ children, className = '' }) => (
-  <p className={`text-sm text-gray-600 ${className}`}>{children}</p>
-);
-const Input = ({ className = '', ...props }) => (
-  <input
-    className={`w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 ${className}`}
-    {...props}
-  />
-);
-const Select = ({ className = '', children, ...props }) => (
-  <select
-    className={`p-2 border border-gray-300 rounded-lg bg-white focus:ring-blue-500 focus:border-blue-500 ${className}`}
-    {...props}
-  >
-    {children}
-  </select>
-);
-const Button = ({ children, className = '', disabled, ...props }) => (
+// ---------------- UI COMPONENTS ----------------
+
+const Title: React.FC<{ children: ReactNode; className?: string }> = ({
+  children,
+  className = '',
+}) => <h1 className={`text-3xl font-bold text-gray-800 ${className}`}>{children}</h1>;
+
+const Text: React.FC<{ children: ReactNode; className?: string }> = ({
+  children,
+  className = '',
+}) => <p className={`text-sm text-gray-600 ${className}`}>{children}</p>;
+
+const Card: React.FC<{ children: ReactNode; className?: string }> = ({
+  children,
+  className = '',
+}) => <div className={`bg-white shadow-xl rounded-xl overflow-hidden ${className}`}>{children}</div>;
+
+const CardContent: React.FC<{ children: ReactNode; className?: string }> = ({
+  children,
+  className = '',
+}) => <div className={`p-6 ${className}`}>{children}</div>;
+
+const Button: React.FC<
+  { children: ReactNode; className?: string; disabled?: boolean } & React.ButtonHTMLAttributes<HTMLButtonElement>
+> = ({ children, className = '', disabled, ...props }) => (
   <button
     className={`px-6 py-2 rounded-lg font-semibold shadow-md 
     ${disabled ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'}
@@ -33,31 +37,30 @@ const Button = ({ children, className = '', disabled, ...props }) => (
     {children}
   </button>
 );
-const Card = ({ children, className = '' }) => (
-  <div className={`bg-white shadow-xl rounded-xl overflow-hidden ${className}`}>{children}</div>
-);
-const CardContent = ({ children, className = '' }) => (
-  <div className={`p-6 ${className}`}>{children}</div>
+
+const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({
+  className = '',
+  ...props
+}) => (
+  <input
+    className={`w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 ${className}`}
+    {...props}
+  />
 );
 
-// Notification popup
-const NotificationBox = ({ message, type, onClose }) => {
-  if (!message) return null;
-  const color =
-    type === 'success'
-      ? 'bg-green-100 border-green-400 text-green-700'
-      : 'bg-red-100 border-red-400 text-red-700';
-  return (
-    <div className={`fixed top-4 right-4 z-50 p-4 border rounded-lg shadow-lg max-w-sm ${color}`}>
-      <div className="flex justify-between">
-        <p className="font-medium">{message}</p>
-        <button onClick={onClose} className="ml-4 font-bold">&times;</button>
-      </div>
-    </div>
-  );
-};
+const Select: React.FC<
+  { children: ReactNode; className?: string } & React.SelectHTMLAttributes<HTMLSelectElement>
+> = ({ children, className = '', ...props }) => (
+  <select
+    className={`p-2 border border-gray-300 rounded-lg bg-white focus:ring-blue-500 focus:border-blue-500 ${className}`}
+    {...props}
+  >
+    {children}
+  </select>
+);
 
-// ---- TYPES ----
+// ---------------- TYPES ----------------
+
 type User = {
   id: string;
   display_name: string;
@@ -80,7 +83,8 @@ const formatDate = (d: string) => {
   return isNaN(date.getTime()) ? "Invalid date" : date.toLocaleString();
 };
 
-// ---- MAIN COMPONENT ----
+// ---------------- MAIN PAGE ----------------
+
 export default function AdminNotificationPage() {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
@@ -89,7 +93,11 @@ export default function AdminNotificationPage() {
   const [message, setMessage] = useState('');
   const [target, setTarget] = useState<'all' | 'selected'>('all');
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [uiNotification, setUiNotification] = useState(null);
+
+  const [uiNotification, setUiNotification] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
 
   const showMsg = (message: string, type: 'success' | 'error') => {
     setUiNotification({ message, type });
@@ -103,6 +111,7 @@ export default function AdminNotificationPage() {
         .from('profiles')
         .select('id, display_name, email')
         .order('created_at', { ascending: false });
+
       setUsers(data || []);
     };
     load();
@@ -115,6 +124,7 @@ export default function AdminNotificationPage() {
       .select('*')
       .order('created_at', { ascending: false })
       .limit(50);
+
     setNotifications(data || []);
   }, []);
 
@@ -126,8 +136,7 @@ export default function AdminNotificationPage() {
   const sendNotification = async () => {
     if (!title || !message) return showMsg('Title and message required.', 'error');
 
-    const recipients =
-      target === 'all' ? users.map((u) => u.id) : selectedUsers;
+    const recipients = target === 'all' ? users.map((u) => u.id) : selectedUsers;
 
     if (recipients.length === 0) return showMsg('No users selected.', 'error');
 
@@ -138,7 +147,7 @@ export default function AdminNotificationPage() {
       title,
       message,
       target,
-      type: "admin"
+      type: "admin",
     }));
 
     const { error } = await supabase.from('notifications').insert(rows);
@@ -157,15 +166,42 @@ export default function AdminNotificationPage() {
     setLoading(false);
   };
 
+  // ---------------- NOTIFICATION TOAST ----------------
+
+  const NotificationBox: React.FC<{
+    message: string | null;
+    type?: 'success' | 'error';
+    onClose: () => void;
+  }> = ({ message, type, onClose }) => {
+    if (!message) return null;
+
+    const color =
+      type === 'success'
+        ? 'bg-green-100 border-green-400 text-green-700'
+        : 'bg-red-100 border-red-400 text-red-700';
+
+    return (
+      <div className={`fixed top-4 right-4 z-50 p-4 border rounded-lg shadow-lg max-w-sm ${color}`}>
+        <div className="flex justify-between">
+          <p className="font-medium">{message}</p>
+          <button onClick={onClose} className="ml-4 font-bold">&times;</button>
+        </div>
+      </div>
+    );
+  };
+
+  // ---------------- RENDER ----------------
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <NotificationBox
-        message={uiNotification?.message}
+        message={uiNotification?.message ?? null}
         type={uiNotification?.type}
         onClose={() => setUiNotification(null)}
       />
 
       <div className="max-w-5xl mx-auto flex flex-col gap-10">
+        
         <Title>Admin Notifications</Title>
 
         {/* SEND FORM */}
@@ -176,24 +212,27 @@ export default function AdminNotificationPage() {
             <div className="grid sm:grid-cols-2 gap-6">
               <div>
                 <Text>Target</Text>
-                <Select value={target} onChange={(e) => setTarget(e.target.value as any)}>
+                <Select
+                  value={target}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                    setTarget(e.target.value as 'all' | 'selected')
+                  }
+                >
                   <option value="all">All Users</option>
                   <option value="selected">Selected Users</option>
                 </Select>
               </div>
 
-              {target === "selected" && (
+              {target === 'selected' && (
                 <div>
-                  <Text>
-                    Select Users ({selectedUsers.length})
-                  </Text>
+                  <Text>Select Users ({selectedUsers.length})</Text>
                   <div className="max-h-40 overflow-y-auto border p-2 rounded">
                     {users.map((u) => (
                       <label key={u.id} className="flex items-center gap-2 py-1">
                         <input
                           type="checkbox"
                           checked={selectedUsers.includes(u.id)}
-                          onChange={(e) => {
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                             const value = u.id;
                             setSelectedUsers((prev) =>
                               e.target.checked
@@ -202,7 +241,9 @@ export default function AdminNotificationPage() {
                             );
                           }}
                         />
-                        <span>{u.display_name} ({u.email})</span>
+                        <span>
+                          {u.display_name} ({u.email})
+                        </span>
                       </label>
                     ))}
                   </div>
@@ -212,7 +253,12 @@ export default function AdminNotificationPage() {
 
             <div>
               <Text>Title</Text>
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+              <Input
+                value={title}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setTitle(e.target.value)
+                }
+              />
             </div>
 
             <div>
@@ -221,21 +267,19 @@ export default function AdminNotificationPage() {
                 className="w-full p-3 border rounded-lg"
                 rows={5}
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  setMessage(e.target.value)
+                }
               />
             </div>
 
-            <Button
-              disabled={loading}
-              onClick={sendNotification}
-              className="w-full sm:w-48"
-            >
-              {loading ? "Sending..." : "Send"}
+            <Button disabled={loading} onClick={sendNotification} className="w-full sm:w-48">
+              {loading ? 'Sending...' : 'Send'}
             </Button>
           </CardContent>
         </Card>
 
-        {/* TABLE */}
+        {/* NOTIFICATION TABLE */}
         <Card>
           <CardContent>
             <h2 className="text-lg font-semibold mb-4">Latest Notifications</h2>
@@ -265,6 +309,7 @@ export default function AdminNotificationPage() {
             </table>
           </CardContent>
         </Card>
+
       </div>
     </div>
   );

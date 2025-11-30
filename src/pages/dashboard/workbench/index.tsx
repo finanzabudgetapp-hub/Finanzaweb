@@ -116,7 +116,16 @@ const [transactions, setTransactions] = useState<Transaction[]>([]);
       const tx = txRes.data || [];
 
       /* 1️⃣ Total earnings */
-      const totalEarnings = earningsData.reduce((sum, t) => sum + (t.amount || 0), 0);
+      interface TransactionAmount {
+  amount?: number;
+}
+
+const totalEarnings = (earningsData as TransactionAmount[]).reduce(
+  (sum: number, t: TransactionAmount) => sum + (t.amount || 0),
+  0
+);
+
+     // const totalEarnings = earningsData.reduce((sum, t) => sum + (t.amount || 0), 0);
 
       /* 2️⃣ Fake analytics */
       const pageViews = 125000;
@@ -131,36 +140,40 @@ const [transactions, setTransactions] = useState<Transaction[]>([]);
       });
 
 
-      type User = {
-  avatar: string;
-  name: string;
-};
+      interface SupabaseUser {
+  avatar_url?: string;
+  display_name?: string;
+}
 
-
-      /* 4️⃣ Recent users */
-
-      setProjectUsers(
-  users.length
-    ? users.map(u => ({
-        avatar: u.avatar_url || avatar1, // fallback if missing
+setProjectUsers(
+  (users as SupabaseUser[]).length
+    ? (users as SupabaseUser[]).map((u: SupabaseUser) => ({
+        avatar: u.avatar_url || avatar1,
         name: u.display_name || "Unknown",
       }))
     : fallbackAvatars
 );
+
       // setProjectUsers(users.length ? users : fallbackAvatars);
 
       /* 5️⃣ Latest transactions */
-      setTransactions(
-        
-        tx.map((t: any) => ({
-          icon: "mdi:cash",
-          name: t.description || "Transaction",
-          id: "#" + t.id,
-          amount: t.amount,
-          time: safeDate(t.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), // FIXED DATE
-          status: t.amount >= 0 ? "up" : "down",
-        }))
-      );
+      interface Transaction {
+  id: string;
+  description?: string;
+  amount: number;
+  created_at: string;
+}
+
+setTransactions(
+  (tx as Transaction[]).map((t: Transaction) => ({
+    icon: "mdi:cash",
+    name: t.description || "Transaction",
+    id: "#" + t.id,
+    amount: t.amount,
+    time: safeDate(t.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    status: t.amount >= 0 ? "up" : "down",
+  }))
+);
 
       /* 6️⃣ Quick Stats */
      interface QuickStat {

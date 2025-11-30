@@ -4,22 +4,33 @@ import { supabase } from "@/supabaseClient";
 /* --------------------------------------------
    UI COMPONENTS
 -------------------------------------------- */
-const Title = ({ children, className = "" }) => (
-  <h1 className={`text-3xl font-bold text-gray-800 ${className}`}>{children}</h1>
-);
+// Title
+const Title: React.FC<{ children: React.ReactNode; className?: string }> = ({
+  children,
+  className = "",
+}) => <h1 className={`text-3xl font-bold text-gray-800 ${className}`}>{children}</h1>;
 
-const Text = ({ children, className = "" }) => (
-  <p className={`text-sm text-gray-700 ${className}`}>{children}</p>
-);
+const Text: React.FC<{ children: React.ReactNode; className?: string }> = ({
+  children,
+  className = "",
+}) => <p className={`text-sm text-gray-700 ${className}`}>{children}</p>;
 
-const Input = ({ className = "", ...props }) => (
+// Input
+const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { className?: string }> = ({
+  className = "",
+  ...props
+}) => (
   <input
     className={`w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition ${className}`}
     {...props}
   />
 );
 
-const Button = ({ children, className = "", disabled, ...props }) => (
+
+// Button
+const Button: React.FC<
+  React.ButtonHTMLAttributes<HTMLButtonElement> & { className?: string; disabled?: boolean }
+> = ({ children, className = "", disabled, ...props }) => (
   <button
     className={`px-5 py-2 rounded-lg font-semibold shadow-sm transition ${
       disabled
@@ -33,16 +44,25 @@ const Button = ({ children, className = "", disabled, ...props }) => (
   </button>
 );
 
-const Card = ({ children, className = "" }) => (
-  <div className={`bg-white shadow-lg rounded-xl ${className}`}>{children}</div>
-);
 
-const CardContent = ({ children, className = "" }) => (
-  <div className={`p-6 ${className}`}>{children}</div>
-);
+// Card
+const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({
+  children,
+  className = "",
+}) => <div className={`bg-white shadow-lg rounded-xl ${className}`}>{children}</div>;
 
-/* -------------- MODAL -------------- */
-const Modal = ({ isOpen, onClose, children }) => {
+const CardContent: React.FC<{ children: React.ReactNode; className?: string }> = ({
+  children,
+  className = "",
+}) => <div className={`p-6 ${className}`}>{children}</div>;
+
+
+// Modal
+const Modal: React.FC<{ isOpen: boolean; onClose: () => void; children: React.ReactNode }> = ({
+  isOpen,
+  onClose,
+  children,
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -59,6 +79,7 @@ const Modal = ({ isOpen, onClose, children }) => {
     </div>
   );
 };
+
 
 /* -------------- TYPES -------------- */
 type User = {
@@ -134,7 +155,7 @@ const AdminUsersPage = () => {
           <Input
             placeholder="Search by name or email..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
             className="max-w-md"
           />
 
