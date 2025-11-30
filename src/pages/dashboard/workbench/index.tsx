@@ -51,7 +51,7 @@ function safeDate(value: any): Date {
   // Try forcing ISO format
   return new Date(String(value).replace(" ", "T"));
 }
-
+  
 /* ------------------------------------------
   MAIN COMPONENT
 -------------------------------------------*/
@@ -71,8 +71,26 @@ export default function Workbench() {
     percent: 0,
   });
 
-  const [projectUsers, setProjectUsers] = useState([]);
-  const [transactions, setTransactions] = useState([]);
+  interface User {
+  avatar?: string; // fallback avatars have `avatar`
+  name: string;
+  avatar_url?: string; // supabase users have `avatar_url`
+  display_name?: string; // supabase users have `display_name`
+}
+
+const [projectUsers, setProjectUsers] = useState<User[]>([]);
+
+  interface Transaction {
+  icon: string;
+  name: string;
+  id: string;
+  amount: number;
+  time: string;
+  status: "up" | "down";
+}
+
+const [transactions, setTransactions] = useState<Transaction[]>([]);
+
 
   useEffect(() => {
     loadDashboard();
@@ -107,17 +125,34 @@ export default function Workbench() {
       /* 3️⃣ Monthly revenue */
       const monthlySeries = Array(12).fill(0);
 
-      txMonthly.forEach((t) => {
+      txMonthly.forEach((t: { amount: number; created_at: string }) => {
         const m = safeDate(t.created_at).getMonth(); // FIXED DATE
         monthlySeries[m] += t.amount || 0;
       });
 
+
+      type User = {
+  avatar: string;
+  name: string;
+};
+
+
       /* 4️⃣ Recent users */
-      setProjectUsers(users.length ? users : fallbackAvatars);
+
+      setProjectUsers(
+  users.length
+    ? users.map(u => ({
+        avatar: u.avatar_url || avatar1, // fallback if missing
+        name: u.display_name || "Unknown",
+      }))
+    : fallbackAvatars
+);
+      // setProjectUsers(users.length ? users : fallbackAvatars);
 
       /* 5️⃣ Latest transactions */
       setTransactions(
-        tx.map((t) => ({
+        
+        tx.map((t: any) => ({
           icon: "mdi:cash",
           name: t.description || "Transaction",
           id: "#" + t.id,
@@ -128,43 +163,35 @@ export default function Workbench() {
       );
 
       /* 6️⃣ Quick Stats */
-      setQuickStats([
-        {
-          icon: "solar:wallet-outline",
-          label: "All Earnings",
-          value: "₦" + totalEarnings.toLocaleString(),
-          color: "#3b82f6",
-          chart: monthlySeries,
-        },
-        {
-          icon: "solar:graph-outline",
-          label: "Page Views",
-          value: pageViews.toLocaleString(),
-          color: "#f59e42",
-          chart: [20, 40, 15, 60, 25, 30, 50, 70],
-        },
-        {
-          icon: "solar:users-group-rounded-outline",
-          label: "Active Users",
-          value: users.length.toString(),
-          color: "#10b981",
-          chart: [5, 10, 20, 30, 40, 50],
-        },
-        {
-          icon: "solar:download-outline",
-          label: "Downloads",
-          value: appDownloads.toLocaleString(),
-          color: "#ef4444",
-          chart: [12, 14, 10, 8, 20, 25, 30, 22],
-        },
-      ]);
+     interface QuickStat {
+  icon: string;
+  label: string;
+  value: string;
+  color: string;
+  chart: number[];
+}
+
+const [quickStats, setQuickStats] = useState<QuickStat[]>([
+  { icon: "solar:wallet-outline", label: "All Earnings", value: "₦0", color: "#3b82f6", chart: [] },
+  { icon: "solar:graph-outline", label: "Page Views", value: "0", color: "#f59e42", chart: [] },
+  { icon: "solar:users-group-rounded-outline", label: "Active Users", value: "0", color: "#10b981", chart: [] },
+  { icon: "solar:download-outline", label: "Downloads", value: "0", color: "#ef4444", chart: [] },
+]);
+
 
       /* 7️⃣ Revenue chart config */
-      setMonthlyRevenue({
-        series: [{ name: "Revenue", data: monthlySeries }],
-        categories: monthlyRevenue.categories,
-        percent: 5.44,
-      });
+      interface MonthlyRevenue {
+  series: { name: string; data: number[] }[];
+  categories: string[];
+  percent: number;
+}
+
+const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenue>({
+  series: [{ name: "Revenue", data: [] }],
+  categories: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+  percent: 0,
+});
+
     } catch (error) {
       console.error("Dashboard Error:", error);
     }
@@ -175,20 +202,21 @@ export default function Workbench() {
   /* ------------------------------------------
       CHART CONFIG
   -------------------------------------------*/
-  const chartOptions = useMemo(
-    () => ({
-      chart: { type: "area", toolbar: { show: false } },
-      stroke: { curve: "smooth", width: 2 },
-      dataLabels: { enabled: false },
-      xaxis: { categories: monthlyRevenue.categories },
-      yaxis: {
-        labels: { formatter: (v) => "₦" + v.toLocaleString() },
-      },
-      tooltip: { y: { formatter: (v) => "₦" + v.toLocaleString() } },
-      colors: ["#3b82f6"],
-    }),
-    [monthlyRevenue.categories]
-  );
+  const chartOptions: ApexCharts.ApexOptions = useMemo(
+  () => ({
+    chart: { type: "area" as const, toolbar: { show: false } }, // note the `as const`
+    stroke: { curve: "smooth", width: 2 },
+    dataLabels: { enabled: false },
+    xaxis: { categories: monthlyRevenue.categories },
+    yaxis: {
+      labels: { formatter: (v: number) => "₦" + v.toLocaleString() },
+    },
+    tooltip: { y: { formatter: (v: number) => "₦" + v.toLocaleString() } },
+    colors: ["#3b82f6"],
+  }),
+  [monthlyRevenue.categories]
+);
+
 
   /* ------------------------------------------
       RENDER UI
