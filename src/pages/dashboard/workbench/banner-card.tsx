@@ -28,20 +28,20 @@ export default function BannerCard() {
 					<div className="col-span-2 md:col-span-1">
 						<div className="flex flex-col gap-4">
 							<Title as="h2" className="text-white">
-								Explore Redesigned {GLOBAL_CONFIG.appName}
+								Explore {GLOBAL_CONFIG.appName}
 							</Title>
 							<Text className="text-white">
-								The rand new User Interface with power of Shadcn/ui Components. Explore the Endless possibilities with{" "}
+								An AI empowered expense tracker and budget app. Take control of your finance with {" "}
 								{GLOBAL_CONFIG.appName}.
 							</Text>
 
 							<Button
 								variant="outline"
 								className="w-fit bg-white text-black"
-								onClick={() => window.open("https://discord.gg/fXemAXVNDa")}
+								onClick={() => window.open("https://playstore.com")}
 							>
-								<Icon icon="carbon:logo-discord" size={24} />
-								<span className="ml-2 font-black">Join Discord</span>
+								<Icon icon="carbon:download" size={24} />
+								<span className="ml-2 font-black">Download</span>
 							</Button>
 						</div>
 					</div>

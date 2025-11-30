@@ -1,11 +1,19 @@
-import { DB_USER } from "@/_mock/assets_backup";
+import { supabase } from "@/supabaseClient"; // Keep this import
+// import { DB_USER } from "@/_mock/assets_backup"; // ❌ REMOVE: No longer using mock data
 import type { SignInReq } from "@/api/services/userService";
 import { Icon } from "@/components/icon";
 import { GLOBAL_CONFIG } from "@/global-config";
-import { useSignIn } from "@/store/userStore";
+// import { useSignIn } from "@/store/userStore"; // ❓ CHECK: If this is a mock or handles *local* user state, it might still be needed, but the auth logic is now Supabase. We'll adjust it.
 import { Button } from "@/ui/button";
 import { Checkbox } from "@/ui/checkbox";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/ui/form";
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/ui/form";
 import { Input } from "@/ui/input";
 import { cn } from "@/utils";
 import { Loader2 } from "lucide-react";
@@ -16,30 +24,106 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { LoginStateEnum, useLoginStateContext } from "./providers/login-provider";
 
-export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"form">) {
+// 📝 NOTE: Update SignInReq to match what Supabase uses (email instead of username)
+// Assuming SignInReq is defined somewhere, you might need to update its definition
+// or create a local type for the form:
+interface SupabaseSignInReq {
+	email: string; // Changed from username
+	password: string;
+}
+
+export function LoginForm({
+	className,
+	...props
+}: React.ComponentPropsWithoutRef<"form">) {
 	const { t } = useTranslation();
 	const [loading, setLoading] = useState(false);
 	const [remember, setRemember] = useState(true);
 	const navigatge = useNavigate();
+	// ❌ REMOVE: These local states are now managed by react-hook-form
+	// const [username, setUsername] = useState("");
+	// const [password, setPassword] = useState("");
 
 	const { loginState, setLoginState } = useLoginStateContext();
-	const signIn = useSignIn();
+	// const signIn = useSignIn(); // ❓ Keep/Update this if it manages local application user state after successful auth
 
-	const form = useForm<SignInReq>({
+	// 📝 Use the updated interface and remove mock defaults
+	const form = useForm<SupabaseSignInReq>({
 		defaultValues: {
-			username: DB_USER[0].username,
-			password: DB_USER[0].password,
+			email: "", // Use empty string instead of mock data
+			password: "", // Use empty string instead of mock data
 		},
 	});
 
 	if (loginState !== LoginStateEnum.LOGIN) return null;
 
-	const handleFinish = async (values: SignInReq) => {
+	// 📝 Update the function signature and content to use Supabase
+	const handleFinish = async (values: SupabaseSignInReq) => {
+		const { email, password } = values;
+
+		// 📝 Removed the redundant check since react-hook-form handles required fields via 'rules'
+		// if (!email || !password) {
+		//   return Alert.alert("Error", "Please fill in all fields.");
+		// }
+
 		setLoading(true);
 		try {
-			await signIn(values);
-			navigatge(GLOBAL_CONFIG.defaultRoute, { replace: true });
-			toast.success(t("sys.login.loginSuccessTitle"), {
+			// 1. **Supabase Sign In**
+			const {
+				data: { user, session },
+				error,
+			} = await supabase.auth.signInWithPassword({
+				email,
+				password,
+			});
+
+			if (error) {
+				// 2. **Authentication Error**
+				toast.error(t("sys.login.loginFailureTitle"), {
+					description: error.message,
+					closeButton: true,
+				});
+				return;
+			}
+
+			if (user && session) {
+				// 3. **Success**
+				// ❓ If you need to manage local state (like calling the original `signIn`), do it here:
+				// await signIn(values); // Re-introduce or update if needed for local state management
+
+				navigatge(GLOBAL_CONFIG.defaultRoute, { replace: true });
+				toast.success(t("sys.login.loginSuccessTitle"), {
+					closeButton: true,
+				});
+			} else {
+				// 4. **Unexpected Issue (e.g., no session/user, but no error)**
+				toast.error(t("sys.login.loginFailureTitle"), {
+					description: t("sys.login.unexpectedLoginIssue"), // Define a new translation key for this
+					closeButton: true,
+				});
+			}
+
+			// ❌ REMOVE: The messy, broken logic from the user's provided code block
+			/*
+			if (!username || !password) {
+				return Alert.alert("Error", "Please fill in all fields.");
+			}
+
+			setLoading(true);
+			try {
+				const { data, error } = await supabase.auth.signInWithPassword({
+					email,
+					password,
+				});
+				// ... rest of the old, messy logic ...
+			} catch (e) {
+				// ... rest of the old, messy logic ...
+			}
+			*/
+		} catch (e) {
+			console.error("Supabase Sign-in error:", e);
+			toast.error(t("sys.login.loginFailureTitle"), {
+				description: t("sys.login.somethingWentWrong"), // Define a new translation key for this
 				closeButton: true,
 			});
 		} finally {
@@ -52,19 +136,26 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 			<Form {...form} {...props}>
 				<form onSubmit={form.handleSubmit(handleFinish)} className="space-y-4">
 					<div className="flex flex-col items-center gap-2 text-center">
-						<h1 className="text-2xl font-bold">{t("sys.login.signInFormTitle")}</h1>
-						<p className="text-balance text-sm text-muted-foreground">{t("sys.login.signInFormDescription")}</p>
+						<h1 className="text-2xl font-bold">
+							{t("sys.login.signInFormTitle")}
+						</h1>
+						<p className="text-balance text-sm text-muted-foreground">
+							{t("sys.login.signInFormDescription")}
+						</p>
 					</div>
 
+					{/* 📝 Field updated to 'email' for Supabase */}
 					<FormField
 						control={form.control}
-						name="username"
+						name="email" // Changed from 'username'
 						rules={{ required: t("sys.login.accountPlaceholder") }}
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>{t("sys.login.userName")}</FormLabel>
+								<FormLabel>{t("sys.login.email")}</FormLabel>{" "}
+								{/* Changed label to Email */}
 								<FormControl>
-									<Input placeholder={DB_USER.map((user) => user.username).join("/")} {...field} />
+									{/* Placeholder updated to reflect the change */}
+									<Input placeholder="user@example.com" {...field} />
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -79,7 +170,13 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 							<FormItem>
 								<FormLabel>{t("sys.login.password")}</FormLabel>
 								<FormControl>
-									<Input type="password" placeholder={DB_USER[0].password} {...field} suppressHydrationWarning />
+									{/* Placeholder updated */}
+									<Input
+										type="password"
+										placeholder="Password"
+										{...field}
+										suppressHydrationWarning
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -92,7 +189,9 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 							<Checkbox
 								id="remember"
 								checked={remember}
-								onCheckedChange={(checked) => setRemember(checked === "indeterminate" ? false : checked)}
+								onCheckedChange={(checked) =>
+									setRemember(checked === "indeterminate" ? false : checked)
+								}
 							/>
 							<label
 								htmlFor="remember"
@@ -100,10 +199,8 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 							>
 								{t("sys.login.rememberMe")}
 							</label>
-						</div>{/*
-						<Button variant="link" onClick={() => setLoginState(LoginStateEnum.RESET_PASSWORD)} size="sm">
-							{t("sys.login.forgetPassword")}
-						</Button>*/}
+						</div>
+						{/* ... rest of the component (e.g., forgot password, other login methods) ... */}
 					</div>
 
 					{/* 登录按钮 */}
@@ -111,43 +208,6 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 						{loading && <Loader2 className="animate-spin mr-2" />}
 						{t("sys.login.loginButton")}
 					</Button>
-
-					{/* 手机登录/二维码登录 
-					<div className="grid gap-4 sm:grid-cols-2">
-						<Button variant="outline" className="w-full" onClick={() => setLoginState(LoginStateEnum.MOBILE)}>
-							<Icon icon="uil:mobile-android" size={20} />
-							{t("sys.login.mobileSignInFormTitle")}
-						</Button>
-						<Button variant="outline" className="w-full" onClick={() => setLoginState(LoginStateEnum.QR_CODE)}>
-							<Icon icon="uil:qrcode-scan" size={20} />
-							{t("sys.login.qrSignInFormTitle")}
-						</Button>
-					</div>*/}
-
-					{/* 其他登录方式 
-					<div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
-						<span className="relative z-10 bg-background px-2 text-muted-foreground">{t("sys.login.otherSignIn")}</span>
-					</div>
-					<div className="flex cursor-pointer justify-around text-2xl">
-						<Button variant="ghost" size="icon">
-							<Icon icon="mdi:github" size={24} />
-						</Button>
-						<Button variant="ghost" size="icon">
-							<Icon icon="mdi:wechat" size={24} />
-						</Button>
-						<Button variant="ghost" size="icon">
-							<Icon icon="ant-design:google-circle-filled" size={24} />
-						</Button>
-					</div>*/}
-
-					{/* 注册 
-					<div className="text-center text-sm">
-						{t("sys.login.noAccount")}
-						<Button variant="link" className="px-1" onClick={() => setLoginState(LoginStateEnum.REGISTER)}>
-							{t("sys.login.signUpFormTitle")}
-						</Button>
-					</div>
-					*/}
 				</form>
 			</Form>
 		</div>

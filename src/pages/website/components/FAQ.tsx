@@ -52,7 +52,7 @@ export default function FAQ() {
 	return (
 		<section
 			id="learn-more"
-			className="py-15 md:py-24 px-auto md:px-30 flex flex-wrap-reverse md:flex-nowrap bg-white text-center gap-20"
+			className="py-15 md:py-24 px-auto md:px-30 flex base:flex-wrap-reverse wrap base:no-wrap bg-white text-center gap-20"
 		>
 			<div className="container mx-auto">
 				<h2 className="text-4xl font-bold mb-12">Frequently Asked Questions</h2>
@@ -72,11 +72,11 @@ export default function FAQ() {
 					))}
 				</div>
 			</div>
-			<div className="container flex  justify-right align-right md:ml-20">
+			<div className="container flex hidden md:block  justify-right align-right md:ml-20">
 				<motion.img
 					src="/assets/images/3.png"
 					alt="Savings Overview"
-					className="w-120 h-full"
+					className="w-120 h-200"
 					whileHover={{ scale: 1.05 }}
 				/>
 			</div>

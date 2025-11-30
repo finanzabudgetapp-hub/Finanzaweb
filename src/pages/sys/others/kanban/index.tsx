@@ -1,304 +1,182 @@
-import { Icon } from "@/components/icon";
-import { Button } from "@/ui/button";
-import { Input } from "@/ui/input";
-import { ScrollArea, ScrollBar } from "@/ui/scroll-area";
-import {
-	DndContext,
-	type DragEndEvent,
-	DragOverlay,
-	type DragStartEvent,
-	PointerSensor,
-	useSensor,
-	useSensors,
-} from "@dnd-kit/core";
-import { SortableContext, arrayMove, horizontalListSortingStrategy } from "@dnd-kit/sortable";
-import { faker } from "@faker-js/faker";
-import { useRef, useState } from "react";
-import { useEvent } from "react-use";
-import KanbanColumn from "./kanban-column";
-import KanbanTask from "./kanban-task";
-import { initialData } from "./task-utils";
-import type { Column, Columns, DndDataType, Task, Tasks } from "./types";
+import React, { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/supabaseClient';
 
-export default function Kanban() {
-	const [state, setState] = useState(initialData);
-	const [activeId, setActiveId] = useState<string | null>(null);
-	const [activeType, setActiveType] = useState<"column" | "task" | null>(null);
-	const [addingColumn, setAddingColumn] = useState(false);
-	const inputRef = useRef<HTMLInputElement>(null);
+// --- UI Components ---
+const Title = ({ children, className = '' }) => (
+  <h1 className={`text-3xl font-bold text-gray-800 ${className}`}>{children}</h1>
+);
+const Text = ({ children, className = '' }) => (
+  <p className={`text-sm text-gray-600 ${className}`}>{children}</p>
+);
+const Input = ({ className = '', ...props }) => (
+  <input
+    className={`w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ${className}`}
+    {...props}
+  />
+);
+const Button = ({ children, className = '', disabled, ...props }) => (
+  <button
+    className={`px-6 py-2 rounded-lg font-semibold transition duration-200 shadow-md ${
+      disabled
+        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+        : 'bg-blue-600 hover:bg-blue-700 text-white active:scale-[0.98]'
+    } ${className}`}
+    disabled={disabled}
+    {...props}
+  >
+    {children}
+  </button>
+);
+const Card = ({ children, className = '' }) => (
+  <div className={`bg-white shadow-xl rounded-xl overflow-hidden ${className}`}>{children}</div>
+);
+const CardContent = ({ children, className = '' }) => <div className={`p-6 ${className}`}>{children}</div>;
 
-	const sensors = useSensors(
-		useSensor(PointerSensor, {
-			activationConstraint: {
-				distance: 8,
-			},
-		}),
-	);
+// Modal for user details
+const Modal = ({ isOpen, onClose, children }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 relative">
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 font-bold text-lg"
+        >
+          &times;
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+};
 
-	const handleDragStart = (event: DragStartEvent) => {
-		const { active } = event;
-		setActiveId(active.id as string);
-		// 通过判断 id 格式来确定拖拽类型
-		setActiveType(active.id.toString().startsWith("task-") ? "task" : "column");
-	};
+// Types
+type User = {
+  id: string;
+  display_name: string;
+  email: string;
+  updated_at: string;
+ 
+};
 
-	const handleDragEnd = (event: DragEndEvent) => {
-		const { active, over } = event;
+// --- MAIN COMPONENT ---
+const AdminUsersPage = () => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-		if (!over) {
-			setActiveId(null);
-			setActiveType(null);
-			return;
-		}
+  // Fetch users
+  const loadUsers = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from('profiles').select('*').order('updated_at', { ascending: false });
+    if (error) console.error('Failed to load users:', error);
+    else setUsers(data || []);
+    setLoading(false);
+  }, []);
 
-		if (active.id !== over.id) {
-			if (activeType === "column") {
-				// 处理列的拖拽
-				const oldIndex = state.columnOrder.indexOf(active.id as string);
-				const newIndex = state.columnOrder.indexOf(over.id as string);
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
-				setState({
-					...state,
-					columnOrder: arrayMove(state.columnOrder, oldIndex, newIndex),
-				});
-			} else {
-				// 处理任务的拖拽
-				const activeColumn = Object.values(state.columns).find((col) => col.taskIds.includes(active.id as string));
-				const overColumn = Object.values(state.columns).find(
-					(col) => col.taskIds.includes(over.id as string) || col.id === over.id,
-				);
+  // Filtered users
+  const filteredUsers = users.filter(
+    (u) =>
+      u.display_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-				if (!activeColumn || !overColumn) return;
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8 lg:p-12 font-inter">
+      <div className="max-w-6xl mx-auto flex flex-col gap-8">
+        <Title className="border-b pb-4">User Management</Title>
 
-				if (activeColumn === overColumn) {
-					// 同列内移动
-					const newTaskIds = arrayMove(
-						activeColumn.taskIds,
-						activeColumn.taskIds.indexOf(active.id as string),
-						activeColumn.taskIds.indexOf(over.id as string),
-					);
+        {/* Search */}
+        <div className="flex gap-4 items-center">
+          <Input
+            placeholder="Search by name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full max-w-md"
+          />
+          <Button onClick={loadUsers} disabled={loading}>
+            {loading ? 'Loading...' : 'Refresh'}
+          </Button>
+        </div>
 
-					setState({
-						...state,
-						columns: {
-							...state.columns,
-							[activeColumn.id]: {
-								...activeColumn,
-								taskIds: newTaskIds,
-							},
-						},
-					});
-				} else {
-					// 跨列移动
-					const sourceTaskIds = activeColumn.taskIds.filter((id) => id !== active.id);
-					const destinationTaskIds = [...overColumn.taskIds];
-					const overTaskIndex = overColumn.taskIds.indexOf(over.id as string);
+        {/* Users Table */}
+        <Card>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[700px]">
+                <thead>
+                  <tr className="bg-gray-100 border-b border-gray-200 text-sm font-medium text-gray-600 uppercase">
+                    <th className="py-3 px-4">Name</th>
+                    <th className="py-3 px-4">Email</th>
+                    <th className="py-3 px-4">Role</th>
+                    <th className="py-3 px-4">Created At</th>
+                    <th className="py-3 px-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-6 text-center text-gray-500 italic">
+                        No users found.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <tr
+                        key={user.id}
+                        className="border-b border-gray-100 hover:bg-blue-50 transition duration-100 text-sm text-gray-700"
+                      >
+                        <td className="py-3 px-4 font-medium">{user.display_name}</td>
+                        <td className="py-3 px-4 font-mono text-xs">{user.email}</td>
+                        <td className="py-3 px-4">{user.role || 'User'}</td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          {user.created_at
+  ? new Date(Date.parse(user.created_at)).toLocaleString()
+  : 'N/A'}
 
-					destinationTaskIds.splice(
-						overTaskIndex >= 0 ? overTaskIndex : destinationTaskIds.length,
-						0,
-						active.id as string,
-					);
+                        </td>
+                        <td className="py-3 px-4">
+                          <Button onClick={() => setSelectedUser(user)} className="px-3 py-1 text-sm">
+                            View Details
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
 
-					setState({
-						...state,
-						columns: {
-							...state.columns,
-							[activeColumn.id]: {
-								...activeColumn,
-								taskIds: sourceTaskIds,
-							},
-							[overColumn.id]: {
-								...overColumn,
-								taskIds: destinationTaskIds,
-							},
-						},
-					});
-				}
-			}
-		}
+        {/* User Detail Modal */}
+        <Modal isOpen={!!selectedUser} onClose={() => setSelectedUser(null)}>
+          {selectedUser && (
+            <div className="flex flex-col gap-4">
+              <h2 className="text-xl font-semibold text-gray-700">User Details</h2>
+              <Text>
+                <strong>Name:</strong> {selectedUser.display_name}
+              </Text>
+              <Text>
+                <strong>Email:</strong> {selectedUser.email}
+              </Text>
+              <Text>
+                <strong>Role:</strong> 'User'
+              </Text>
+              <Text>
+                <strong>Created At:</strong> {new Date(selectedUser.created_at).toLocaleString()}
+              </Text>
+            </div>
+          )}
+        </Modal>
+      </div>
+    </div>
+  );
+};
 
-		setActiveId(null);
-		setActiveType(null);
-	};
-
-	const handleClickOutside = (event: MouseEvent) => {
-		if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
-			const inputVal = inputRef.current.value;
-			if (inputVal) {
-				createColumn({
-					id: faker.string.uuid(),
-					title: inputVal,
-					taskIds: [],
-				});
-			}
-			setAddingColumn(false);
-			console.log("click outside");
-		}
-	};
-	useEvent("click", handleClickOutside);
-
-	const createColumn = (column: Column) => {
-		const newState: DndDataType = {
-			...state,
-			columns: {
-				...state.columns,
-				[column.id]: column,
-			},
-			columnOrder: [...state.columnOrder, column.id],
-		};
-		setState(newState);
-	};
-
-	const createTask = (columnId: string, task: Task) => {
-		const column = state.columns[columnId];
-		const newState: DndDataType = {
-			...state,
-			tasks: {
-				...state.tasks,
-				[task.id]: task,
-			},
-			columns: {
-				...state.columns,
-				[columnId]: {
-					...column,
-					taskIds: [...column.taskIds, task.id],
-				},
-			},
-		};
-		setState(newState);
-	};
-
-	const deletColumn = (columnId: string) => {
-		const column = state.columns[columnId];
-		const newTasks = Object.keys(state.tasks)
-			.filter((key) => !column.taskIds.includes(key))
-			.reduce((result, key) => {
-				result[key] = state.tasks[key];
-				return result;
-			}, {} as Tasks);
-
-		const newColumns = Object.keys(state.columns)
-			.filter((key) => key !== columnId)
-			.reduce((result, key) => {
-				result[key] = state.columns[key];
-				return result;
-			}, {} as Columns);
-		const newColumnOrder = Array.from(state.columnOrder).filter((item) => item !== columnId);
-
-		const newState: DndDataType = {
-			tasks: newTasks,
-			columns: newColumns,
-			columnOrder: newColumnOrder,
-		};
-		setState(newState);
-	};
-
-	const clearColumn = (columnId: string) => {
-		const column = state.columns[columnId];
-		const newTasks = Object.keys(state.tasks)
-			.filter((key) => !column.taskIds.includes(key))
-			.reduce((result, key) => {
-				result[key] = state.tasks[key];
-				return result;
-			}, {} as Tasks);
-		const newColumns = {
-			...state.columns,
-			[columnId]: {
-				...column,
-				taskIds: [],
-			},
-		};
-		const newState: DndDataType = {
-			...state,
-			tasks: newTasks,
-			columns: newColumns,
-		};
-		setState(newState);
-	};
-
-	const renameColumn = (column: Column) => {
-		const { id, title } = column;
-		const newColumns = {
-			...state.columns,
-			[id]: {
-				...state.columns[id],
-				title,
-			},
-		};
-		const newState: DndDataType = {
-			...state,
-			columns: newColumns,
-		};
-		setState(newState);
-	};
-
-	return (
-		<ScrollArea type="hover">
-			<div className="flex w-full">
-				<DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-					<div className="flex h-full items-start gap-6 p-1">
-						<SortableContext items={state.columnOrder} strategy={horizontalListSortingStrategy}>
-							{state.columnOrder.map((columnId, index) => {
-								const column = state.columns[columnId];
-								const tasks = column.taskIds.map((taskId) => state.tasks[taskId]);
-
-								return (
-									<KanbanColumn
-										key={columnId}
-										id={columnId}
-										index={index}
-										column={column}
-										tasks={tasks}
-										createTask={createTask}
-										clearColumn={clearColumn}
-										deleteColumn={deletColumn}
-										renameColumn={renameColumn}
-									/>
-								);
-							})}
-						</SortableContext>
-
-						<DragOverlay>
-							{activeId && activeType === "column" ? (
-								<KanbanColumn
-									id={activeId}
-									index={state.columnOrder.indexOf(activeId)}
-									column={state.columns[activeId]}
-									tasks={state.columns[activeId].taskIds.map((id) => state.tasks[id])}
-									createTask={createTask}
-									clearColumn={clearColumn}
-									deleteColumn={deletColumn}
-									renameColumn={renameColumn}
-									isDragging
-								/>
-							) : null}
-							{activeId && activeType === "task" ? (
-								<KanbanTask id={activeId} task={state.tasks[activeId]} isDragging />
-							) : null}
-						</DragOverlay>
-					</div>
-				</DndContext>
-
-				<div className="ml-[1.6rem] mt-[0.25rem] min-w-[280px]">
-					{addingColumn ? (
-						<Input ref={inputRef} placeholder="Column Name" autoFocus />
-					) : (
-						<Button
-							variant="outline"
-							onClick={(e) => {
-								e.stopPropagation();
-								setAddingColumn(true);
-							}}
-							className="inline-flex! w-full! items-center justify-center text-xs! font-semibold!"
-						>
-							<Icon icon="carbon:add" size={20} />
-							<div>Add Column</div>
-						</Button>
-					)}
-				</div>
-			</div>
-			<ScrollBar orientation="horizontal" />
-		</ScrollArea>
-	);
-}
+export default AdminUsersPage;

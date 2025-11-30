@@ -7,7 +7,7 @@ export default function Hero() {
 			id="home"
 			className="bg-gradient-to-b from-[#7f3dff] to-[#fff] text-white pt-24 pb-0 relative overflow-set"
 		>
-			<div className="container mx-auto mt-10 px-6 text-center">
+			<div className="container mx-auto mt-10 md:px-6 px-1 text-center">
 				<motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-6xl font-bold mb-6">
 					Manage Your Finances
 					<br /> with <span className="text-yellow-300">Finanza</span>
@@ -43,7 +43,7 @@ export default function Hero() {
 					<motion.img
 						src="/assets/images/2.png"
 						alt="Expense Analytics"
-						className="w-70 h-full"
+						className="w-70 h-full hidden md:block "
 						whileHover={{ scale: 1.05 }}
 					/>
 					<motion.img
@@ -56,7 +56,7 @@ export default function Hero() {
 					<motion.img
 						src="/assets/images/3.png"
 						alt="Savings Overview"
-						className="w-70 h-full"
+						className="w-70 h-full hidden md:block"
 						whileHover={{ scale: 1.05 }}
 					/>
 				</div>
