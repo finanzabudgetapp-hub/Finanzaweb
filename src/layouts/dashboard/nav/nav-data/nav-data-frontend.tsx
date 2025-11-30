@@ -17,7 +17,7 @@ export const frontendNavData: NavProps["data"] = [
 				icon: <Icon icon="local:ic-analysis" size="24" />,
 			},
 		],
-	},
+	},/**
 	{
 		name: "sys.nav.pages",
 		items: [
@@ -176,11 +176,11 @@ export const frontendNavData: NavProps["data"] = [
 				],
 			},
 		],
-	},
+	},**/
 	{
 		name: "sys.nav.others",
 		items: [
-			{
+			/**{
 				title: "sys.nav.permission",
 				path: "/permission",
 				icon: <Icon icon="mingcute:safe-lock-fill" size="24" />,
@@ -197,12 +197,12 @@ export const frontendNavData: NavProps["data"] = [
 				path: "/calendar",
 				icon: <Icon icon="solar:calendar-bold-duotone" size="24" />,
 				info: <Badge variant="warning">+12</Badge>,
-			},
+			},**/
 			{
-				title: "sys.nav.kanban",
+				title: "Users list",
 				path: "/kanban",
 				icon: <Icon icon="solar:clipboard-bold-duotone" size="24" />,
-			},
+			}, /**
 			{
 				title: "sys.nav.disabled",
 				path: "/disabled",
@@ -234,9 +234,9 @@ export const frontendNavData: NavProps["data"] = [
 						path: "/link/iframe",
 					},
 				],
-			},
+			},**/
 			{
-				title: "sys.nav.blank",
+				title: "Users Notification",
 				path: "/blank",
 				icon: <Icon icon="local:ic-blank" size="24" />,
 			},

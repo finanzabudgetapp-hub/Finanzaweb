@@ -11,10 +11,11 @@ import { NavLink } from "react-router";
  */
 export default function AccountDropdown() {
 	const { replace } = useRouter();
-	const { username, email, avatar } = useUserInfo();
+	const { username, email } = useUserInfo();
 	const { clearUserInfoAndToken } = useUserActions();
 	const { backToLogin } = useLoginStateContext();
 	const { t } = useTranslation();
+	const avatar = 'https://static.vecteezy.com/system/resources/thumbnails/019/194/935/small/global-admin-icon-color-outline-vector.jpg';
 	const logout = () => {
 		try {
 			clearUserInfoAndToken();
@@ -41,7 +42,7 @@ export default function AccountDropdown() {
 						<div className="text-text-secondary text-xs">{email}</div>
 					</div>
 				</div>
-				<DropdownMenuSeparator />
+				{/**<DropdownMenuSeparator />
 				<DropdownMenuItem asChild>
 					<NavLink to="https://docs-admin.finanzaspaces.com/" target="_blank">
 						{t("sys.docs")}
@@ -52,7 +53,7 @@ export default function AccountDropdown() {
 				</DropdownMenuItem>
 				<DropdownMenuItem asChild>
 					<NavLink to="/management/user/account">{t("sys.nav.user.account")}</NavLink>
-				</DropdownMenuItem>
+				</DropdownMenuItem> **/}
 				<DropdownMenuSeparator />
 				<DropdownMenuItem className="font-bold text-warning" onClick={logout}>
 					{t("sys.login.logout")}

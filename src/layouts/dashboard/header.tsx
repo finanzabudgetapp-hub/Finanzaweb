@@ -33,13 +33,13 @@ export default function Header({ leftSlot }: HeaderProps) {
 			</div>
 
 			<div className="flex items-center gap-1">
-				<SearchBar />
+				{/**<SearchBar />
 				<LocalePicker />
 				<Button
 					variant="ghost"
 					size="icon"
 					className="rounded-full"
-					onClick={() => window.open("https://github.com/d3george/finanza")}
+					onClick={() => window.open("https://github.com/finanzaweb")}
 				>
 					<Icon icon="mdi:github" size={24} />
 				</Button>
@@ -52,7 +52,7 @@ export default function Header({ leftSlot }: HeaderProps) {
 					<Icon icon="carbon:logo-discord" size={24} />
 				</Button>
 				<NoticeButton />
-				<SettingButton />
+				<SettingButton />**/}
 				<AccountDropdown />
 			</div>
 		</header>
