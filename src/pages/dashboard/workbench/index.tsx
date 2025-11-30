@@ -58,53 +58,19 @@ function safeDate(value: any): Date {
 export default function Workbench() {
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-  const loadStats = async () => {
-    try {
-      // Example queries — adjust based on your tables
+
 
       const { count: activeCount } = await supabase
         .from("profiles")
         .select("*", { count: "exact", head: true });
 
-      // Update the stats
-      setQuickStats([
-        {
-          icon: "solar:wallet-outline",
-          label: "All Earnings",
-          value: "₦0",
-          color: "#3b82f6",
-          chart: [],
-        },
-        {
-          icon: "solar:graph-outline",
-          label: "Page Views",
-          value: "0",
-          color: "#f59e42",
-          chart: [],
-        },
-        {
-          icon: "solar:users-group-rounded-outline",
-          label: "Active Users",
-          value: `${activeCount ?? 0}`,
-          color: "#10b981",
-          chart: [],
-        },
-        {
-          icon: "solar:download-outline",
-          label: "Downloads",
-          value: "0",
-          color: "#ef4444",
-          chart: [],
-        },
-      ]);
-    } catch (error) {
-      console.log("Error loading stats:", error);
-    }
-  };
+    const [quickStats, setQuickStats] = useState<QuickStat[]>([
+  { icon: "solar:wallet-outline", label: "All Earnings", value: "₦0", color: "#3b82f6", chart: [] },
+  { icon: "solar:graph-outline", label: "Page Views", value: "0", color: "#f59e42", chart: [] },
+  { icon: "solar:users-group-rounded-outline", label: "Active Users", value: `${activeCount ?? 0}`,, color: "#10b981", chart: [] },
+  { icon: "solar:download-outline", label: "Downloads", value: "0", color: "#ef4444", chart: [] },
+]);
 
-  loadStats();
-}, []);
 
 
   const [monthlyRevenue, setMonthlyRevenue] = useState({
@@ -360,4 +326,5 @@ const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenue>({
     </div>
   );
 }
+
 
