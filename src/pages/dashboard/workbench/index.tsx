@@ -67,7 +67,7 @@ export default function Workbench() {
     const [quickStats, setQuickStats] = useState<QuickStat[]>([
   { icon: "solar:wallet-outline", label: "All Earnings", value: "₦0", color: "#3b82f6", chart: [] },
   { icon: "solar:graph-outline", label: "Page Views", value: "0", color: "#f59e42", chart: [] },
-  { icon: "solar:users-group-rounded-outline", label: "Active Users", value: `${activeCount ?? 0}`,, color: "#10b981", chart: [] },
+  { icon: "solar:users-group-rounded-outline", label: "Active Users", value: `${activeCount ?? 0}`, color: "#10b981", chart: [] },
   { icon: "solar:download-outline", label: "Downloads", value: "0", color: "#ef4444", chart: [] },
 ]);
 
@@ -326,5 +326,6 @@ const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenue>({
     </div>
   );
 }
+
 
 
