@@ -7,7 +7,7 @@ import { useNavigate } from "react-router";
 export default function Header() {
 	const [open, setOpen] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
-	const navigatge = useNavigate();
+	const navigatge = useNavigate();z
 
 	useEffect(() => {
 		const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -33,7 +33,7 @@ export default function Header() {
 
 					{/* Desktop Nav */}
 					<nav className="hidden md:flex items-center gap-8">
-						{["Home", "About", "Features", "Testimonials", "Contact"].map((link) => (
+						{["Home", "About", "Features", "Testimonials"].map((link) => (
 							<a
 								key={link}
 								style={{ color: "white" }}
@@ -54,9 +54,11 @@ export default function Header() {
 						>
 							Log In
 						</button>
+						<a href="#footer">
 						<button className="px-5 py-2 text-md rounded-full bg-[#7f3dff] border border-[#fff] text-white hover:bg-[#6c2fff] transition">
 							Download
 						</button>
+							</a>
 					</div>
 
 					{/* Mobile Menu Toggle */}
@@ -75,7 +77,7 @@ export default function Header() {
 						}`}
 					>
 						<div className="flex flex-col items-center text-md py-6 space-y-4">
-							{["Home", "About", "Features", "Testimonials", "Contact"].map((link) => (
+							{["Home", "About", "Features", "Testimonials"].map((link) => (
 								<a
 									key={link}
 									href={`#${link.toLowerCase()}`}
@@ -93,9 +95,11 @@ export default function Header() {
 								>
 									Log In
 								</button>
+								<a href="#footer">
 								<button className="px-5 py-2 text-md rounded-full bg-[#7f3dff] text-white hover:bg-[#6c2fff] transition">
 									Download
 								</button>
+								</a>
 							</div>
 						</div>
 					</m.div>
