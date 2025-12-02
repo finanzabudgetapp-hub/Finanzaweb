@@ -23,12 +23,14 @@ export default function Hero() {
 				</motion.p>
 
 				<div className="flex justify-center gap-4">
+					<a href="#footer">
 					<motion.button
 						whileHover={{ scale: 1.05 }}
 						className="bg-white text-[#7f3dff] px-6 py-3 text-md rounded-full font-semibold shadow-md hover:bg-gray-100 transition"
 					>
 						Download App
 					</motion.button>
+						</a>
 					<a href="#learn-more" style={{ color: "white" }}>
 						<motion.button
 							whileHover={{ scale: 1.05 }}
