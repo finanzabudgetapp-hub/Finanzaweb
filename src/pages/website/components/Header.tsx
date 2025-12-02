@@ -7,7 +7,7 @@ import { useNavigate } from "react-router";
 export default function Header() {
 	const [open, setOpen] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
-	const navigatge = useNavigate();z
+	const navigatge = useNavigate();
 
 	useEffect(() => {
 		const handleScroll = () => setScrolled(window.scrollY > 50);
