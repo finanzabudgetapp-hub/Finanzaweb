@@ -106,7 +106,13 @@ export default function Footer() {
 /* -------------------------------
     PURE TAILWINDCSS MODAL
 -------------------------------- */
-function Modal({ title, children, onClose }) {
+type ModalProps = {
+  title: string;
+  children: React.ReactNode;
+  onClose: () => void;
+};
+
+function Modal({ title, children, onClose }: ModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       
