@@ -8,7 +8,7 @@ export default function Footer() {
 
   return (
     <>
-      <footer className="bg-[#7f3dff] px-4 md:px-10 text-white flex flex-wrap-reverse justify-center md:justify-between py-10 text-center">
+      <footer id="footer" className="bg-[#7f3dff] px-4 md:px-10 text-white flex flex-wrap-reverse justify-center md:justify-between py-10 text-center">
         <p className="mb-3">© {new Date().getFullYear()} Finanza. All rights reserved.</p>
 
         <div className="flex justify-center gap-6">
