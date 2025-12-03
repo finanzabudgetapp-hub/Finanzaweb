@@ -23,8 +23,8 @@ export default function Features() {
 	return (
 		<section
 			id="features"
-			className="py-24 px-auto md:px-24 pt-100 bg-[#7f3dff] text-center"
-			style={{ marginTop: -300 }}
+			className="py-24 px-auto md:px-24 pt-35 bg-[#7f3dff] text-center"
+			style={{ marginTop: -100 }}
 		>
 			<h2 className="text-5xl text-white font-bold mb-10">Why Choose Finanza?</h2>
 			<div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto px-6">
