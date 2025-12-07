@@ -21,7 +21,7 @@ export default function Footer() {
       {/* ===== MODALS ===== */}
       {/* Helper Component */}
       {open && (
-        <Modal onClose={() => setOpen(false)} title="Privacy Policy">
+        <Modal onClose={() => setOpen(false)} title="Privacy Policy" id='privacy'>
           <div className="space-y-4 text-gray-700">
             <h3 className="font-semibold text-lg">1. Information We Collect</h3>
             <p>
@@ -59,7 +59,7 @@ export default function Footer() {
       )}
 
       {openTerm && (
-        <Modal onClose={() => setOpenTerm(false)} title="Terms of Service">
+        <Modal onClose={() => setOpenTerm(false)} title="Terms of Service" id='term'>
           <div className="space-y-4 text-gray-700">
             <h3 className="font-semibold text-lg">1. Introduction</h3>
             <p>By using Finanza, you agree to these Terms of Service.</p>
@@ -90,7 +90,7 @@ export default function Footer() {
       )}
 
       {contact && (
-        <Modal onClose={() => setContact(false)} title="Contact Us">
+        <Modal onClose={() => setContact(false)} title="Contact Us" id='contact'>
           <div className="space-y-3 text-gray-700">
             <p><strong>Website:</strong> finanzatechnologies.com</p>
             <p><strong>Email:</strong> finanzabudgetapp@gmail.com</p>
@@ -123,7 +123,7 @@ function Modal({ title, children, onClose }: ModalProps) {
       />
 
       {/* Modal Box */}
-      <div className="relative bg-white rounded-xl shadow-xl w-11/12 max-w-lg p-6 animate-fadeIn scale-95">
+      <div className="relative bg-white rounded-xl shadow-xl w-11/12 max-w-lg p-6 animate-fadeIn scale-95" id={id}>
         <h2 className="text-xl font-semibold mb-4">{title}</h2>
 
         <div>{children}</div>
