@@ -21,8 +21,8 @@ export default function Footer() {
       {/* ===== MODALS ===== */}
       {/* Helper Component */}
       {open && (
-        <Modal onClose={() => setOpen(false)} title="Privacy Policy" id='privacy'>
-          <div className="space-y-4 text-gray-700">
+        <Modal onClose={() => setOpen(false)} title="Privacy Policy">
+          <div className="space-y-4 text-gray-700"  id='privacy'>
             <h3 className="font-semibold text-lg">1. Information We Collect</h3>
             <p>
               Finanza collects your name, email (Google login), and expense records you enter.
@@ -59,8 +59,8 @@ export default function Footer() {
       )}
 
       {openTerm && (
-        <Modal onClose={() => setOpenTerm(false)} title="Terms of Service" id='term'>
-          <div className="space-y-4 text-gray-700">
+        <Modal onClose={() => setOpenTerm(false)} title="Terms of Service">
+          <div className="space-y-4 text-gray-700" id='terms'>
             <h3 className="font-semibold text-lg">1. Introduction</h3>
             <p>By using Finanza, you agree to these Terms of Service.</p>
 
@@ -90,8 +90,8 @@ export default function Footer() {
       )}
 
       {contact && (
-        <Modal onClose={() => setContact(false)} title="Contact Us" id='contact'>
-          <div className="space-y-3 text-gray-700">
+        <Modal onClose={() => setContact(false)} title="Contact Us">
+          <div className="space-y-3 text-gray-700" id='contact'>
             <p><strong>Website:</strong> finanzatechnologies.com</p>
             <p><strong>Email:</strong> finanzabudgetapp@gmail.com</p>
             <p><strong>Phone:</strong> +1 278 899 2221</p>
@@ -123,7 +123,7 @@ function Modal({ title, children, onClose }: ModalProps) {
       />
 
       {/* Modal Box */}
-      <div className="relative bg-white rounded-xl shadow-xl w-11/12 max-w-lg p-6 animate-fadeIn scale-95" id={id}>
+      <div className="relative bg-white rounded-xl shadow-xl w-11/12 max-w-lg p-6 animate-fadeIn scale-95">
         <h2 className="text-xl font-semibold mb-4">{title}</h2>
 
         <div>{children}</div>
